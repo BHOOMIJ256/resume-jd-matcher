@@ -4,13 +4,6 @@
 __pycache__/
 *.pyc
 
-   *.log
-   *.env.*
-   *.swp
-   *.swo
-   .vscode/
-   .idea/
-
 # Node.js
 node_modules/
 npm-debug.log*
@@ -19,7 +12,6 @@ yarn-error.log*
 
 # Misc
 .env
-.DS_Store
 venv/
 node_modules/
 resume-matcher-frontend/.vite/
@@ -27,3 +19,23 @@ resume-matcher-frontend/.vite-temp/
 resume-matcher-backend/uploads/
 resume-matcher-backend/jd.txt
 resume-matcher-backend/resume.txt
+
+# IDE/editor folders
+.vscode/
+.idea/
+*.sublime-*
+*.swp
+
+# Build outputs (if any)
+dist/
+build/
+
+# Other virtual environments
+.env/
+env/
+
+# Log files
+*.log
+
+# Other environment files
+.env.*

@@ -1,4 +1,5 @@
-// src/components/ResumeMatcher.jsx
+
+// ResumeMatcher.jsx
 import { useState } from "react";
 import "./ResumeMatcher.css";
 
@@ -9,12 +10,14 @@ function ResumeMatcher() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState({ open: false, message: "" });
+  const [analysisMode, setAnalysisMode] = useState("detailed");
 
   const handleSubmit = async () => {
     if (!resume || (!jdText && !jdFile)) {
       setModal({ open: true, message: "Please provide both resume and job description." });
       return;
     }
+
     const formData = new FormData();
     formData.append("resume", resume);
     if (jdFile) {
@@ -22,36 +25,84 @@ function ResumeMatcher() {
     } else {
       formData.append("jd_text", jdText);
     }
+
     try {
       setLoading(true);
       setResult(null);
-      const response = await fetch("http://localhost:5000/match", {
+
+      const endpoint = analysisMode === "detailed" ? "/match" : "/match-basic";
+
+      const response = await fetch(`http://localhost:5000${endpoint}`, {
         method: "POST",
         body: formData,
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       setResult(data);
     } catch (error) {
-      setModal({ open: true, message: "Failed to connect to backend." });
+      console.error("Error:", error);
+      setModal({ open: true, message: `Failed to connect to backend: ${error.message}` });
     } finally {
       setLoading(false);
     }
   };
 
-  // Mutually exclusive JD input logic
   const handleJdTextChange = (e) => {
     setJdText(e.target.value);
     if (e.target.value) setJdFile(null);
   };
+
   const handleJdFileChange = (e) => {
     setJdFile(e.target.files[0]);
     if (e.target.files[0]) setJdText("");
   };
 
+  const formatAnalysis = (analysisText) => {
+    if (!analysisText) return null;
+
+    const sections = analysisText.split(/(?=Key Strengths:|Missing Skills:|Recommendations:)/g);
+
+    return sections.map((section, index) => {
+      if (!section.trim()) return null;
+
+      let sectionClass = "analysis-section";
+      if (section.startsWith("Key Strengths:")) sectionClass += " strengths-section";
+      else if (section.startsWith("Missing Skills:")) sectionClass += " missing-section";
+      else if (section.startsWith("Recommendations:")) sectionClass += " recommendations-section";
+
+      return (
+        <div key={index} className={sectionClass}>
+          <pre className="analysis-text">{section.trim()}</pre>
+        </div>
+      );
+    }).filter(Boolean);
+  };
+
   return (
     <div className="page-wrapper">
       <div className="container">
-        <h1 className="heading">Resume Matcher</h1>
+        <h1 className="heading">AI Resume Matcher</h1>
+
+        <div className="analysis-toggle">
+          <button
+            type="button"
+            onClick={() => setAnalysisMode("detailed")}
+            className={`toggle-btn ${analysisMode === "detailed" ? "active" : ""}`}
+          >
+            Detailed Analysis
+          </button>
+          <button
+            type="button"
+            onClick={() => setAnalysisMode("basic")}
+            className={`toggle-btn ${analysisMode === "basic" ? "active" : ""}`}
+          >
+            Basic Score
+          </button>
+        </div>
 
         <div>
           <label className="label">Upload Resume (PDF):</label>
@@ -90,21 +141,40 @@ function ResumeMatcher() {
           />
         </div>
 
-        <button onClick={handleSubmit} className="button">
-          Submit for Matching
+        <button onClick={handleSubmit} className="button" disabled={loading}>
+          {loading ? "Analyzing..." : `Analyze Resume (${analysisMode === "detailed" ? "AI Powered" : "Basic Score"})`}
         </button>
 
         {loading && <div className="spinner"></div>}
 
         {result && (
           <div className="result">
-            <strong>Score:</strong> {result.score}%
-            <br />
-            <strong>Verdict:</strong> {result.verdict}
+            <div className="result-header">
+              <div className="score-display">
+                <strong>Match Score:</strong>
+                <span className={`score-value ${result.score > 75 ? "high-score" : result.score > 50 ? "medium-score" : "low-score"}`}>
+                  {result.score}%
+                </span>
+              </div>
+              <div className="verdict-display">
+                <strong>Verdict:</strong>
+                <span className={`verdict-badge ${result.verdict === "Shortlist" ? "shortlist" : "reject"}`}>
+                  {result.verdict}
+                </span>
+              </div>
+            </div>
+
+            {result.analysis && (
+              <div className="detailed-analysis">
+                <h3 className="analysis-title">Detailed Analysis</h3>
+                <div className="analysis-content">
+                  {formatAnalysis(result.analysis)}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Modal Popup */}
         {modal.open && (
           <div className="modal-backdrop">
             <div className="modal">
