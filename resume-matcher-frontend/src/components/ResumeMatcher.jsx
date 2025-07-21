@@ -81,23 +81,39 @@ function ResumeMatcher() {
     if (e.target.files[0]) setBulkJdText("");
   };
 
-  // Bulk analysis submit (UI only, no backend yet)
+  // Bulk analysis submit (connect to backend)
   const handleBulkSubmit = async () => {
     if (!zipFile || (!bulkJdText && !bulkJdFile)) {
       setModal({ open: true, message: "Please provide both zipped resumes and job description." });
       return;
     }
-    // Simulate progress for UI demo
     setBulkLoading(true);
-    setBulkProgress({ processed: 0, total: 10 }); // Example: 10 resumes
+    setBulkProgress({ processed: 0, total: 0 });
     setBulkResultFileUrl(null);
-    for (let i = 1; i <= 10; i++) {
-      await new Promise((res) => setTimeout(res, 400));
-      setBulkProgress({ processed: i, total: 10 });
+    try {
+      const formData = new FormData();
+      formData.append("resumes_zip", zipFile);
+      if (bulkJdFile) {
+        formData.append("job_description", bulkJdFile);
+      } else {
+        formData.append("jd_text", bulkJdText);
+      }
+      const response = await fetch("http://localhost:5000/bulk-match", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      // Show progress as all processed
+      setBulkProgress({ processed: data.results.length, total: data.results.length });
+      setBulkResultFileUrl(`http://localhost:5000${data.reportUrl}`);
+    } catch (error) {
+      setModal({ open: true, message: `Bulk analysis failed: ${error.message}` });
+    } finally {
+      setBulkLoading(false);
     }
-    // Simulate result file
-    setBulkResultFileUrl("/path/to/fake_report.xlsx");
-    setBulkLoading(false);
   };
 
   const formatAnalysis = (analysisText) => {
@@ -142,84 +158,84 @@ function ResumeMatcher() {
         {/* Single Analysis Tab */}
         {tab === "single" && (
           <>
-            <div className="analysis-toggle">
-              <button
-                type="button"
-                onClick={() => setAnalysisMode("detailed")}
-                className={`toggle-btn ${analysisMode === "detailed" ? "active" : ""}`}
-              >
-                Detailed Analysis
-              </button>
-              <button
-                type="button"
-                onClick={() => setAnalysisMode("basic")}
-                className={`toggle-btn ${analysisMode === "basic" ? "active" : ""}`}
-              >
-                Basic Score
-              </button>
-            </div>
-            <div>
-              <label className="label">Upload Resume (PDF):</label>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) => setResume(e.target.files[0])}
-                className="input"
-              />
-            </div>
-            <div>
-              <label className="label">Paste Job Description (Text):</label>
-              <textarea
-                value={jdText}
-                onChange={handleJdTextChange}
-                placeholder="Paste JD here..."
-                rows="5"
-                className="textarea"
-                disabled={!!jdFile}
-              />
-            </div>
-            <div className="or-divider">
-              <span className="or-text">OR</span>
-            </div>
-            <div>
-              <label className="label">Upload Job Description (PDF):</label>
-              <input
-                type="file"
-                accept=".pdf"
-                onChange={handleJdFileChange}
-                className="input"
-                disabled={!!jdText}
-              />
-            </div>
-            <button onClick={handleSubmit} className="button" disabled={loading}>
-              {loading ? "Analyzing..." : `Analyze Resume (${analysisMode === "detailed" ? "AI Powered" : "Basic Score"})`}
-            </button>
-            {loading && <div className="spinner"></div>}
-            {result && (
-              <div className="result">
-                <div className="result-header">
-                  <div className="score-display">
-                    <strong>Match Score:</strong>
-                    <span className={`score-value ${result.score > 75 ? "high-score" : result.score > 50 ? "medium-score" : "low-score"}`}>
-                      {result.score}%
-                    </span>
-                  </div>
-                  <div className="verdict-display">
-                    <strong>Verdict:</strong>
-                    <span className={`verdict-badge ${result.verdict === "Shortlist" ? "shortlist" : "reject"}`}>
-                      {result.verdict}
-                    </span>
-                  </div>
-                </div>
-                {result.analysis && (
-                  <div className="detailed-analysis">
-                    <h3 className="analysis-title">Detailed Analysis</h3>
-                    <div className="analysis-content">
-                      {formatAnalysis(result.analysis)}
-                    </div>
-                  </div>
-                )}
+        <div className="analysis-toggle">
+          <button
+            type="button"
+            onClick={() => setAnalysisMode("detailed")}
+            className={`toggle-btn ${analysisMode === "detailed" ? "active" : ""}`}
+          >
+            Detailed Analysis
+          </button>
+          <button
+            type="button"
+            onClick={() => setAnalysisMode("basic")}
+            className={`toggle-btn ${analysisMode === "basic" ? "active" : ""}`}
+          >
+            Basic Score
+          </button>
+        </div>
+        <div>
+          <label className="label">Upload Resume (PDF):</label>
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => setResume(e.target.files[0])}
+            className="input"
+          />
+        </div>
+        <div>
+          <label className="label">Paste Job Description (Text):</label>
+          <textarea
+            value={jdText}
+            onChange={handleJdTextChange}
+            placeholder="Paste JD here..."
+            rows="5"
+            className="textarea"
+            disabled={!!jdFile}
+          />
+        </div>
+        <div className="or-divider">
+          <span className="or-text">OR</span>
+        </div>
+        <div>
+          <label className="label">Upload Job Description (PDF):</label>
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={handleJdFileChange}
+            className="input"
+            disabled={!!jdText}
+          />
+        </div>
+        <button onClick={handleSubmit} className="button" disabled={loading}>
+          {loading ? "Analyzing..." : `Analyze Resume (${analysisMode === "detailed" ? "AI Powered" : "Basic Score"})`}
+        </button>
+        {loading && <div className="spinner"></div>}
+        {result && (
+          <div className="result">
+            <div className="result-header">
+              <div className="score-display">
+                <strong>Match Score:</strong>
+                <span className={`score-value ${result.score > 75 ? "high-score" : result.score > 50 ? "medium-score" : "low-score"}`}>
+                  {result.score}%
+                </span>
               </div>
+              <div className="verdict-display">
+                <strong>Verdict:</strong>
+                <span className={`verdict-badge ${result.verdict === "Shortlist" ? "shortlist" : "reject"}`}>
+                  {result.verdict}
+                </span>
+              </div>
+            </div>
+            {result.analysis && (
+              <div className="detailed-analysis">
+                <h3 className="analysis-title">Detailed Analysis</h3>
+                <div className="analysis-content">
+                  {formatAnalysis(result.analysis)}
+                </div>
+              </div>
+            )}
+          </div>
             )}
           </>
         )}
@@ -261,15 +277,15 @@ function ResumeMatcher() {
               />
             </div>
             <button onClick={handleBulkSubmit} className="button" disabled={bulkLoading}>
-              {bulkLoading ? `Analyzing... (${bulkProgress.processed}/${bulkProgress.total} resumes)` : "Analyze Bulk Resumes"}
+              {bulkLoading ? `Analyzing...${bulkProgress.total ? ` (${bulkProgress.processed}/${bulkProgress.total} resumes)` : ''}` : "Analyze Bulk Resumes"}
             </button>
             {bulkLoading && (
               <div className="progress-loader">
-                <span>{`Processed: ${bulkProgress.processed}/${bulkProgress.total} resumes`}</span>
+                <span>{bulkProgress.total ? `Processed: ${bulkProgress.processed}/${bulkProgress.total} resumes` : "Analyzing resumes..."}</span>
                 <div className="progress-bar-bg">
                   <div
                     className="progress-bar-fill"
-                    style={{ width: `${(bulkProgress.processed / (bulkProgress.total || 1)) * 100}%` }}
+                    style={{ width: `${(bulkProgress.total ? (bulkProgress.processed / bulkProgress.total) : 0) * 100}%` }}
                   ></div>
                 </div>
               </div>
