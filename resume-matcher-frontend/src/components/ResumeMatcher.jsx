@@ -21,6 +21,8 @@ function ResumeMatcher() {
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkProgress, setBulkProgress] = useState({ processed: 0, total: 0 });
   const [bulkResultFileUrl, setBulkResultFileUrl] = useState(null);
+  const [bulkJobTitle, setBulkJobTitle] = useState("");
+
 
   const handleSubmit = async () => {
     if (!resume || (!jdText && !jdFile)) {
@@ -87,26 +89,39 @@ function ResumeMatcher() {
       setModal({ open: true, message: "Please provide both zipped resumes and job description." });
       return;
     }
+  
+    if (!bulkJobTitle || bulkJobTitle.trim() === "") {
+      setModal({ open: true, message: "Please provide a job title." });
+      return;
+    }
+  
     setBulkLoading(true);
     setBulkProgress({ processed: 0, total: 0 });
     setBulkResultFileUrl(null);
+  
     try {
       const formData = new FormData();
       formData.append("resumes_zip", zipFile);
+  
       if (bulkJdFile) {
         formData.append("job_description", bulkJdFile);
       } else {
         formData.append("jd_text", bulkJdText);
       }
+  
+      // ✅ Add the job title to FormData
+      formData.append("job_title", bulkJobTitle);
+  
       const response = await fetch("http://localhost:5000/bulk-match", {
         method: "POST",
         body: formData,
       });
+  
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
+  
       const data = await response.json();
-      // Show progress as all processed
       setBulkProgress({ processed: data.results.length, total: data.results.length });
       setBulkResultFileUrl(`http://localhost:5000${data.reportUrl}`);
     } catch (error) {
@@ -115,6 +130,7 @@ function ResumeMatcher() {
       setBulkLoading(false);
     }
   };
+  
 
   const formatAnalysis = (analysisText) => {
     if (!analysisText) return null;
@@ -194,6 +210,7 @@ function ResumeMatcher() {
             disabled={!!jdFile}
           />
         </div>
+        
         <div className="or-divider">
           <span className="or-text">OR</span>
         </div>
@@ -252,6 +269,17 @@ function ResumeMatcher() {
                 className="input"
               />
             </div>
+            <div>
+            <label className="label">Job Title:</label>
+            <input
+            type="text"
+            value={bulkJobTitle}
+            onChange={(e) => setBulkJobTitle(e.target.value)}
+            placeholder="Enter job title (e.g., Software Engineer)"
+            className="input"
+            />
+            </div>
+
             <div>
               <label className="label">Paste Job Description (Text):</label>
               <textarea

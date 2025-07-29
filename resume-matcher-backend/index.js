@@ -15,6 +15,8 @@ const AdmZip = require('adm-zip');
 const ExcelJS = require('exceljs');
 
 const app = express();
+const recentBulkAnalyses = [];
+
 const fileFilter = (req, file, cb) => {
   const allowedFields = ['resume', 'jd', 'job_description', 'jobDescription', 'cv', 'document', 'resumes_zip'];
   const allowedMimeTypes = [
@@ -60,9 +62,6 @@ Key Strengths:
 
 Missing Skills:
 - Bullet point list of missing skills.
-
-Recommendations:
-- Bullet point list of recommendations.
 
 At the very end of your response, include a match score between 1 and 100 in the following format:
 <<MATCH_SCORE:##>>`;
@@ -214,7 +213,7 @@ app.post('/bulk-match', upload.fields([
 
     if (!zipFile) return res.status(400).json({ error: 'Zipped resumes not uploaded' });
 
-    // Extract JD text - UPDATED to use extractTextFromFile
+    // Extract JD text
     let jobDescText = '';
     if (jdFile) {
       try {
@@ -231,46 +230,37 @@ app.post('/bulk-match', upload.fields([
     // Unzip resumes
     const zip = new AdmZip(zipFile.path);
     const tempDir = path.join(__dirname, 'uploads', `bulk_${Date.now()}`);
-    
-    // Ensure temp directory exists
     if (!fs.existsSync(tempDir)) {
       fs.mkdirSync(tempDir, { recursive: true });
     }
-    
+
     try {
       zip.extractAllTo(tempDir, true);
       console.log('Zip extracted successfully to:', tempDir);
     } catch (extractError) {
       console.error('Zip extraction error:', extractError);
-      // Clean up
       fs.unlinkSync(zipFile.path);
       if (jdFile) fs.unlinkSync(jdFile.path);
       return res.status(400).json({ error: 'Failed to extract zip file: ' + extractError.message });
     }
 
-    // Debug: Log extracted contents
     console.log('Temp directory contents:', fs.readdirSync(tempDir));
 
-    // Recursively get all resume files (PDF and DOCX)
     const files = getAllResumeFiles(tempDir);
 
-    
-    // Debug: Log found files - UPDATED message
     console.log('Resume files found:', files.length);
     console.log('Resume file paths:', files);
-    
+
     if (files.length === 0) {
-      // Debug: Check what files are actually in the directory
       const allFiles = getAllFiles(tempDir);
       console.log('All files in directory:', allFiles.length);
       console.log('File types found:', allFiles.map(f => path.extname(f).toLowerCase()));
-      
-      // Clean up
+
       fs.unlinkSync(zipFile.path);
       fs.rmSync(tempDir, { recursive: true, force: true });
       if (jdFile) fs.unlinkSync(jdFile.path);
       return res.status(400).json({ 
-        error: 'No PDF or DOCX resumes found in zip', // UPDATED error message
+        error: 'No PDF or DOCX resumes found in zip',
         debug: {
           totalFiles: allFiles.length,
           fileTypes: allFiles.map(f => path.extname(f).toLowerCase()),
@@ -279,7 +269,6 @@ app.post('/bulk-match', upload.fields([
       });
     }
 
-    // Analyze each resume (robust error handling)
     const results = [];
     for (let i = 0; i < files.length; i++) {
       const filePath = files[i];
@@ -291,10 +280,9 @@ app.post('/bulk-match', upload.fields([
       try {
         let resumeText = '';
         try {
-          // UPDATED to use extractTextFromFile with filename
           resumeText = await extractTextFromFile(filePath, filename);
         } catch (err) {
-          row.error = 'File parse error: ' + err.message; // UPDATED error message
+          row.error = 'File parse error: ' + err.message;
           results.push(row);
           continue;
         }
@@ -315,7 +303,6 @@ app.post('/bulk-match', upload.fields([
       results.push(row);
     }
 
-    // Generate Excel report
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Bulk Analysis');
     worksheet.columns = [
@@ -331,15 +318,32 @@ app.post('/bulk-match', upload.fields([
     const reportPath = path.join(__dirname, 'uploads', reportFilename);
     await workbook.xlsx.writeFile(reportPath);
 
-    // Clean up
+    // ✅ Clean up
     fs.unlinkSync(zipFile.path);
     if (jdFile) fs.unlinkSync(jdFile.path);
     fs.rmSync(tempDir, { recursive: true, force: true });
 
+    // ✅ Track in-memory recents list
+    recentBulkAnalyses.unshift({
+      jobTitle: req.body.jobName || req.body.job_title || 'Untitled Job',
+      date: new Date().toLocaleString(),
+      reportUrl: `/download-bulk-report/${reportFilename}`,
+      resumesProcessed: results.length
+    });
+    if (recentBulkAnalyses.length > 10) recentBulkAnalyses.pop();
+
+    // ✅ Save recent bulk analyses to file
+    const recentsFilePath = path.join(__dirname, 'data', 'bulk_recent_results.json');
+    if (!fs.existsSync(path.dirname(recentsFilePath))) {
+    fs.mkdirSync(path.dirname(recentsFilePath), { recursive: true });
+    }
+    fs.writeFileSync(recentsFilePath, JSON.stringify(recentBulkAnalyses, null, 2));
+    // ✅ Send final response
     res.json({
       results,
       reportUrl: `/download-bulk-report/${reportFilename}`
     });
+
   } catch (error) {
     console.error('Bulk analysis error:', error);
     res.status(500).json({ error: 'Server error: ' + error.message });
@@ -350,15 +354,26 @@ app.post('/bulk-match', upload.fields([
 app.get('/download-bulk-report/:filename', (req, res) => {
   const filename = req.params.filename;
   const filePath = path.join(__dirname, 'uploads', filename);
+
   if (!fs.existsSync(filePath)) {
     return res.status(404).send('File not found');
   }
-  res.download(filePath, filename, (err) => {
-    if (!err) {
-      // Clean up after download
-      fs.unlink(filePath, () => {});
-    }
-  });
+
+  res.download(filePath, filename); // <-- No deletion anymore
+});
+
+
+// Endpoint to fetch recent bulk analyses
+app.get("/bulk-recents", (req, res) => {
+  const recentsFile = path.join(__dirname, "data", "bulk_recent_results.json");
+  if (!fs.existsSync(recentsFile)) return res.json([]);
+  try {
+    const data = fs.readFileSync(recentsFile, "utf-8");
+    res.json(JSON.parse(data));
+  } catch (error) {
+    console.error("Error reading recents:", error);
+    res.status(500).json({ error: "Failed to read recent bulk analyses." });
+  }
 });
 
 async function extractTextFromFile(filePath, originalName = '') {
