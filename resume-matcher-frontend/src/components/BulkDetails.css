@@ -1,0 +1,288 @@
+/* components/BulkDetails.css */
+
+.bulk-details-container {
+  display: flex;
+  height: 100vh;
+  width: 1500px;
+  padding: 10px;
+  background-color: #f8f9fa;
+}
+
+.loading, .error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
+  color: #6c757d;
+}
+
+.error {
+  color: #dc3545;
+}
+
+/* Sidebar Styles */
+.sidebar {
+  width: 350px;
+  background: white;
+  border-right: 1px solid #dee2e6;
+  overflow-y: auto;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+.sidebar h3 {
+  padding: 20px;
+  margin: 0;
+  background: #343a40;
+  color: white;
+  font-size: 1.1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar li {
+  border-bottom: 1px solid #e9ecef;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar li:hover {
+  background-color: #f8f9fa;
+}
+
+.sidebar li.selected {
+  background-color: #007bff;
+  color: white;
+}
+
+.sidebar li.selected:hover {
+  background-color: #0056b3;
+}
+
+.resume-item {
+  padding: 15px 20px;
+}
+
+.resume-name {
+  font-weight: 500;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+
+.resume-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.score-badge {
+  background-color: #6c757d;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  min-width: 35px;
+  text-align: center;
+}
+
+.verdict-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Detail View Styles */
+.detail-view {
+  flex: 1;
+  overflow-y: auto;
+  background: white;
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #6c757d;
+  text-align: center;
+  padding: 40px;
+}
+
+.placeholder h3 {
+  margin-bottom: 10px;
+  color: #495057;
+}
+
+.resume-analysis {
+  padding: 30px;
+  max-width: 1000px;
+}
+
+.resume-header {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.resume-header h2 {
+  margin: 0 0 15px 0;
+  color: #343a40;
+  font-size: 1.8rem;
+  word-break: break-word;
+}
+
+.resume-stats {
+  display: flex;
+  gap: 30px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #6c757d;
+  text-transform: uppercase;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.stat-value.score::after {
+  content: '%';
+  font-size: 1rem;
+  margin-left: 2px;
+}
+
+/* Analysis Sections */
+.analysis-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.analysis-section {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 25px;
+  border-left: 4px solid #007bff;
+}
+
+.analysis-section.strengths {
+  border-left-color: #28a745;
+  background: #f8fff9;
+}
+
+.analysis-section.missing-skills {
+  border-left-color: #dc3545;
+  background: #fff8f8;
+}
+
+.analysis-section h3 {
+  margin: 0 0 15px 0;
+  color: #343a40;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.analysis-content {
+  color: #495057;
+  line-height: 1.6;
+}
+
+.analysis-content ul {
+  margin: 0;
+}
+
+.analysis-content li {
+  margin-bottom: 8px;
+  padding-left: 5px;
+}
+
+.analysis-content em {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Error Section */
+.error-section {
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 8px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.error-section h3 {
+  color: #e53e3e;
+  margin: 0 0 10px 0;
+}
+
+.error-message {
+  color: #c53030;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .bulk-details-container {
+    flex-direction: column;
+    height: auto;
+  }
+  
+  .sidebar {
+    width: 100%;
+    max-height: 300px;
+  }
+  
+  .resume-stats {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .analysis-sections {
+    gap: 20px;
+  }
+  
+  .resume-analysis {
+    padding: 20px;
+  }
+}
+
+/* Scrollbar Styling */
+.sidebar::-webkit-scrollbar,
+.detail-view::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.detail-view::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.detail-view::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.detail-view::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

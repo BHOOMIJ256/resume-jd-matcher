@@ -1,0 +1,23 @@
+[
+  {
+    "filename": "Requirement - 2 Python Developer/Keval - Resume.pdf",
+    "score": "",
+    "verdict": "",
+    "analysis": "",
+    "error": "File parse error: Failed to extract text from file: No text could be extracted from the file"
+  },
+  {
+    "filename": "Requirement - 2 Python Developer/Naukri_OrvinFernandes[4y_0m].pdf",
+    "score": "",
+    "verdict": "",
+    "analysis": "",
+    "error": "Gemini LLM error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: fetch failed"
+  },
+  {
+    "filename": "Requirement - 2 Python Developer/Naukri_RinkuUdayPatil[4y_2m].pdf",
+    "score": "",
+    "verdict": "",
+    "analysis": "",
+    "error": "Gemini LLM error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent: fetch failed"
+  }
+]

@@ -13,8 +13,10 @@
   "description": "",
   "dependencies": {
     "@google/generative-ai": "^0.15.0",
+    "adm-zip": "^0.5.16",
     "cors": "^2.8.5",
     "dotenv": "^17.2.0",
+    "exceljs": "^4.4.0",
     "express": "^5.1.0",
     "mammoth": "^1.9.1",
     "multer": "^2.0.1",

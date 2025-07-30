@@ -1,0 +1,27 @@
+[
+  {
+    "filename": "Requirement - 2 Python Developer/Keval - Resume.pdf",
+    "score": "",
+    "verdict": "",
+    "analysis": "",
+    "error": "File parse error: Failed to extract text from file: No text could be extracted from the file"
+  },
+  {
+    "filename": "Requirement - 2 Python Developer/Naukri_OrvinFernandes[4y_0m].pdf",
+    "score": 55,
+    "verdict": "Reject",
+    "analysis": "",
+    "error": "",
+    "key_strengths": "*   **Strong Python Development Background:** With 3.8+ years of experience, Orvin significantly exceeds the 2+ years requirement, demonstrating deep proficiency in Python.\n*   **Backend & API Expertise:** Extensive experience building robust REST APIs using Django, FastAPI, and DRF, which is valuable for API integration and understanding web communication.\n*   **Database Proficiency:** Proven ability to design and optimize PostgreSQL schemas and experience with MongoDB directly align with the need for storing scraped data.\n*   **Data Manipulation with Pandas:** Orvin explicitly mentions using Pandas for data cleaning and manipulation, a direct match for a key technical skill.\n*   **API Integration Experience:** His use of the `Requests` library to interact with external endpoints for chatbot functionality demonstrates practical experience with APIs and third-party integrations.\n*   **CI/CD & Version Control:** Experience with Jenkins, Git, and CI/CD pipelines shows strong development lifecycle management capabilities.\n*   **Cloud Deployment:** Familiarity with AWS (EC2, RDS) for deploying applications indicates a solid understanding of cloud infrastructure.\n*   **Problem-Solving & Optimization:** Quantified achievements like improving query performance by 40% and reducing manual workload by 60% highlight strong analytical and problem-solving skills.\n*   **Collaboration & Communication:** Demonstrated experience working with cross-functional teams and strong soft skills listed directly match the job's non-technical requirements.",
+    "missing_skills": ""
+  },
+  {
+    "filename": "Requirement - 2 Python Developer/Naukri_RinkuUdayPatil[4y_2m].pdf",
+    "score": 55,
+    "verdict": "Reject",
+    "analysis": "",
+    "error": "",
+    "key_strengths": "",
+    "missing_skills": ""
+  }
+]
