@@ -52,8 +52,35 @@
 
 ## Project Structure
 
-
-
+```bash
+resume-jd-matcher/
+├──node_modules/
+├──resume-matcher-backend/
+├    ├── data
+|    |── uploads
+|    |__ index.js
+|    |__ match.py
+├── resume-matcher-frontend/
+│ ├── src/
+│ │ ├── components/
+│ │ │ ├── BulkDetails.css
+│ │ │ ├── BulkDetails.jsx
+│ │ │ ├── Navbar.css
+| | | |__ Navbar.jsx
+| | | |__ Recents.jsx
+| | | |__ ResumeMatcher.css
+| | | |__ ResumeMatcher.jsx
+| | |__ App.css
+│ │ └── App.jsx
+| | |__index.css
+├ | |__main.jsx
+│ └── public/
+├──  venv
+├── .env
+├── .gitignore
+├── package.json
+└── README.md
+```
 ---
 
 ## How Matching Works
@@ -100,17 +127,6 @@ cd frontend
 npm install
 npm run dev
 ```
-## API Endpoints 
-
-| Method | Endpoint                          | Description                    |
-| ------ | --------------------------------- | ------------------------------ |
-| POST   | `/upload-resume-jd`               | Upload single resume and JD    |
-| POST   | `/upload-bulk-resumes`            | Upload multiple resumes + JD   |
-| GET    | `/download-bulk-report/:filename` | Download Excel analysis file   |
-| GET    | `/bulk-details/:filename`         | Fetch resume-wise JSON details |
-
-
-
 
 
 
