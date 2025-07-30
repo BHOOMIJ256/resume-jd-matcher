@@ -53,33 +53,35 @@
 ## Project Structure
 
 ```bash
+
 resume-jd-matcher/
-├──node_modules/
-├──resume-matcher-backend/
-├    ├── data
-|    |── uploads
-|    |__ index.js
-|    |__ match.py
+├── node_modules/
+├── resume-matcher-backend/
+│   ├── data/
+│   ├── uploads/
+│   ├── index.js
+│   └── match.py
 ├── resume-matcher-frontend/
-│ ├── src/
-│ │ ├── components/
-│ │ │ ├── BulkDetails.css
-│ │ │ ├── BulkDetails.jsx
-│ │ │ ├── Navbar.css
-| | | |__ Navbar.jsx
-| | | |__ Recents.jsx
-| | | |__ ResumeMatcher.css
-| | | |__ ResumeMatcher.jsx
-| | |__ App.css
-│ │ └── App.jsx
-| | |__index.css
-├ | |__main.jsx
-│ └── public/
-├──  venv
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── BulkDetails.css
+│   │   │   ├── BulkDetails.jsx
+│   │   │   ├── Navbar.css
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── Recents.jsx
+│   │   │   ├── ResumeMatcher.css
+│   │   │   └── ResumeMatcher.jsx
+│   │   ├── App.css
+│   │   ├── App.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   └── public/
+├── venv/
 ├── .env
 ├── .gitignore
 ├── package.json
 └── README.md
+
 ```
 ---
 
@@ -127,6 +129,12 @@ cd frontend
 npm install
 npm run dev
 ```
+
+## Developed by
+
+* **Shalini Majumdar & Bhoomi Jain**
+* **AI Interns**
+
 
 
 
