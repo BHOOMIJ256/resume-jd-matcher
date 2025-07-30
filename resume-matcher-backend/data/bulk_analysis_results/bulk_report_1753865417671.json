@@ -1,0 +1,27 @@
+[
+  {
+    "filename": "Requirement - 2 Python Developer/Keval - Resume.pdf",
+    "score": "",
+    "verdict": "",
+    "analysis": "",
+    "error": "File parse error: Failed to extract text from file: No text could be extracted from the file"
+  },
+  {
+    "filename": "Requirement - 2 Python Developer/Naukri_OrvinFernandes[4y_0m].pdf",
+    "score": 45,
+    "verdict": "Reject",
+    "analysis": "",
+    "error": "",
+    "key_strengths": "*   **Strong Python Proficiency and Experience:** Orvin's 3.8+ years of Python development experience significantly exceeds the 2+ years requirement, demonstrating a solid foundation in the language.\n*   **Database Expertise (SQL & NoSQL):** Proven experience with PostgreSQL, MongoDB, schema design, indexing, and query optimization directly aligns with the need to store and manage scraped data.\n*   **Data Manipulation with Pandas:** Explicitly mentions using Pandas for support scripts and data manipulation, directly addressing a key technical skill requirement.\n*   **API Integration Experience:** Demonstrated experience interacting with internal databases via endpoints and building REST APIs indicates a strong understanding of API usage, which is crucial when web scraping is not feasible.\n*   **Version Control (Git) & CI/CD:** Proficient in Git and managing CI/CD pipelines with Jenkins, aligning with modern development practices requested by the job.\n*   **Cloud Deployment (AWS):** Experience deploying applications on AWS EC2 with RDS shows capability in cloud infrastructure, which can be beneficial for scalable scraping solutions.\n*   **Solid Soft Skills:** The resume highlights communication, problem-solving, critical thinking, and collaboration, which are explicitly sought after non-technical skills.\n*   **Relevant Educational Background:** A Bachelor of Engineering degree meets the educational requirement.",
+    "missing_skills": ""
+  },
+  {
+    "filename": "Requirement - 2 Python Developer/Naukri_RinkuUdayPatil[4y_2m].pdf",
+    "score": 48,
+    "verdict": "Reject",
+    "analysis": "",
+    "error": "",
+    "key_strengths": "*   **Strong Python Development & Data Engineering Experience:** Rinku has over 5 years of experience in Python development, including backend frameworks like Django and Flask, and robust ETL pipeline development using Python scripts and Talend. This demonstrates a solid foundation in software development and data processing.\n*   **Proficiency in Data Manipulation and Databases:** The resume clearly highlights expertise in Pandas for data manipulation (extraction, filtering, merging, handling missing data) and strong SQL skills across various database systems (Oracle, MySQL, SQL Server, PostgreSQL), which are crucial for handling extracted data.\n*   **API Development and Integration:** Rinku has experience building and managing RESTful APIs using Django Rest Framework, and understanding of API communication, which is a direct match for leveraging APIs when web scraping isn't feasible.\n*   **Automation and Workflow Management:** Experience in creating and automating ETL workflows, scheduling jobs (cron, batch scripts, Talend), and managing End-of-Day processes showcases a strong ability to build scalable and efficient data pipelines.\n*   **Version Control Proficiency:** Familiarity with Git (and SVN) is explicitly listed, meeting a core technical requirement for collaborative development.\n*   **Relevant Educational Background & Certifications:** A Bachelor's degree in Computer Engineering and a Python with Django certification align well with the educational requirements and foundational knowledge.\n*   **Soft Skills Alignment:** The profile effectively communicates strong analytical, problem-solving, communication, and teamwork skills, directly addressing the non-technical requirements of the role.\n*   **Data Visualization Experience (Bonus):** Rinku's experience in designing and maintaining Power BI reports directly aligns with the bonus skill for data visualization tools.",
+    "missing_skills": "*   **Direct Web Scraping Expertise:** The most significant gap is the lack of explicit experience or dedicated projects focused on web scraping. The job description specifically requires \"at least 1 year focused on web scraping.\"\n*   **Core Web Scraping Libraries:** There is no mention of proficiency in essential web scraping libraries such as BeautifulSoup, Scrapy, or Selenium, which are key requirements for this role.\n*   **Advanced Web Scraping Techniques:** The resume does not demonstrate experience with handling dynamic websites, CAPTCHA-solving, or implementing IP rotation techniques, all of which are critical for robust scraping solutions mentioned in the job.\n*   **Regular Expressions (Regex):** This specific technical skill, required for data parsing, is not mentioned anywhere in the resume.\n*   **NumPy:** While Pandas is heavily utilized, NumPy is also listed as a desired data manipulation library and is not present.\n*   **NoSQL Databases:** The resume lists extensive experience with SQL databases, but the job description also mentions familiarity with NoSQL for storing scraped data, which is not covered.\n*   **Containerization Tools (Docker):** This is a bonus skill that is not present in the resume.\n*   **Distributed Scraping Solutions/Task Queues:** Experience with technologies like Celery or RabbitMQ for distributed scraping is listed as a bonus skill and is not mentioned."
+  }
+]

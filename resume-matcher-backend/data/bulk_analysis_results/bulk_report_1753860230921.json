@@ -1,0 +1,23 @@
+[
+  {
+    "filename": "Requirement - 2 Python Developer/Keval - Resume.pdf",
+    "score": "",
+    "verdict": "",
+    "analysis": "",
+    "error": "File parse error: Failed to extract text from file: No text could be extracted from the file"
+  },
+  {
+    "filename": "Requirement - 2 Python Developer/Naukri_OrvinFernandes[4y_0m].pdf",
+    "score": 58,
+    "verdict": "Reject",
+    "analysis": "",
+    "error": "Gemini LLM error: Cannot read properties of undefined (reading 'trim')"
+  },
+  {
+    "filename": "Requirement - 2 Python Developer/Naukri_RinkuUdayPatil[4y_2m].pdf",
+    "score": 45,
+    "verdict": "Reject",
+    "analysis": "",
+    "error": "Gemini LLM error: Cannot read properties of undefined (reading 'trim')"
+  }
+]

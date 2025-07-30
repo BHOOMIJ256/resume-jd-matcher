@@ -30,13 +30,12 @@ function Recents() {
                 <div><strong>Resumes Processed:</strong> {match.resumesProcessed}</div>
               </div>
               <a
-                className="recents-download"
-                href={`http://localhost:5000${match.reportUrl}`}
-
-                download
+               className="recents-download"
+               href={`/details/${match.reportUrl.split("/").pop().replace('.xlsx', '')}`}
               >
-                Download Report
-              </a>
+              View Details
+             </a>
+
             </div>
           ))
         )}

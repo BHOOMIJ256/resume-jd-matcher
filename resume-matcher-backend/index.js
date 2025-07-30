@@ -15,7 +15,25 @@ const AdmZip = require('adm-zip');
 const ExcelJS = require('exceljs');
 
 const app = express();
-const recentBulkAnalyses = [];
+
+// Function to load recent bulk analyses from file on server startup
+function loadRecentBulkAnalyses() {
+  const recentsFilePath = path.join(__dirname, 'data', 'bulk_recent_results.json');
+  try {
+    if (fs.existsSync(recentsFilePath)) {
+      const data = fs.readFileSync(recentsFilePath, 'utf-8');
+      const loadedData = JSON.parse(data);
+      console.log(`Loaded ${loadedData.length} recent bulk analyses from file`);
+      return loadedData;
+    }
+  } catch (error) {
+    console.error('Error loading recent bulk analyses:', error);
+  }
+  return [];
+}
+
+// Initialize recentBulkAnalyses with data from file
+const recentBulkAnalyses = loadRecentBulkAnalyses();
 
 const fileFilter = (req, file, cb) => {
   const allowedFields = ['resume', 'jd', 'job_description', 'jobDescription', 'cv', 'document', 'resumes_zip'];
@@ -66,6 +84,53 @@ Missing Skills:
 At the very end of your response, include a match score between 1 and 100 in the following format:
 <<MATCH_SCORE:##>>`;
 
+// NEW: Function to parse Gemini response and extract sections
+function parseGeminiAnalysis(geminiResponse) {
+  try {
+    // Remove match score from response
+    const cleanResponse = geminiResponse.replace(/<<MATCH_SCORE:\d{1,3}>>/, '').trim();
+    
+    // Initialize sections
+    let keyStrengths = '';
+    let missingSkills = '';
+    
+    // Split by sections using regex to find headers
+    const sections = cleanResponse.split(/(?=(?:Key Strengths|Missing Skills):\s*)/i);
+    
+    for (const section of sections) {
+      const trimmedSection = section.trim();
+      
+      if (trimmedSection.toLowerCase().startsWith('key strengths:')) {
+        // Extract everything after "Key Strengths:" until we hit another section or end
+        const strengthsMatch = trimmedSection.match(/key strengths:\s*([\s\S]*?)(?=(?:missing skills:|$))/i);
+        if (strengthsMatch) {
+          keyStrengths = strengthsMatch[1].trim();
+        }
+      } else if (trimmedSection.toLowerCase().startsWith('missing skills:')) {
+        // Extract everything after "Missing Skills:" until end
+        const missingMatch = trimmedSection.match(/missing skills:\s*([\s\S]*)/i);
+        if (missingMatch) {
+          missingSkills = missingMatch[1].trim();
+        }
+      }
+    }
+    
+    return {
+      keyStrengths: keyStrengths || 'No key strengths identified',
+      missingSkills: missingSkills || 'No missing skills identified',
+      fullAnalysis: cleanResponse // Keep full analysis for backward compatibility
+    };
+  } catch (error) {
+    console.error('Error parsing Gemini analysis:', error);
+    // Fallback to original format
+    const cleanAnalysis = geminiResponse.replace(/<<MATCH_SCORE:\d{1,3}>>/, '').trim();
+    return {
+      keyStrengths: 'Error parsing strengths',
+      missingSkills: 'Error parsing missing skills',
+      fullAnalysis: cleanAnalysis
+    };
+  }
+}
 
 async function analyzeResumeWithGemini(resumeText, jdText) {
   try {
@@ -87,7 +152,7 @@ function extractMatchScore(geminiResponse) {
   return match ? parseInt(match[1]) : 0;
 }
 
-// Endpoint: LLM-based detailed match
+// UPDATED: Single resume match endpoint with segregated analysis
 app.post('/match', upload.fields([{ name: 'resume' }, { name: 'job_description' }]), async (req, res) => {
   try {
     const resumeFile = req.files['resume']?.[0];
@@ -101,14 +166,11 @@ app.post('/match', upload.fields([{ name: 'resume' }, { name: 'job_description' 
   ? await extractTextFromFile(jdFile.path, jdFile.originalname)
   : jdText || '';
 
-
-
     if (!jobDescText) return res.status(400).json({ error: 'Job description is required' });
 
     const geminiAnalysis = await analyzeResumeWithGemini(resumeText, jobDescText);
-
     const matchScore = extractMatchScore(geminiAnalysis);
-    const cleanAnalysis = geminiAnalysis.replace(/<<MATCH_SCORE:\d{1,3}>>/, '').trim();
+    const parsedAnalysis = parseGeminiAnalysis(geminiAnalysis);
     const verdict = matchScore > 75 ? 'Shortlist' : 'Reject';
 
     // Clean up
@@ -118,7 +180,9 @@ app.post('/match', upload.fields([{ name: 'resume' }, { name: 'job_description' 
     res.json({
       score: matchScore,
       verdict,
-      analysis: cleanAnalysis
+      analysis: parsedAnalysis.fullAnalysis,
+      keyStrengths: parsedAnalysis.keyStrengths,
+      missingSkills: parsedAnalysis.missingSkills
     });
 
   } catch (error) {
@@ -140,8 +204,6 @@ app.post('/match-basic', upload.fields([{ name: 'resume' }, { name: 'job_descrip
     const jobDescText = jdFile 
   ? await extractTextFromFile(jdFile.path, jdFile.originalname)
   : jdText || '';
-
-
 
     // Save to temp files for Python
     fs.writeFileSync('resume.txt', resumeText);
@@ -200,8 +262,7 @@ function getAllResumeFiles(dir) {
   return files;
 }
 
-
-// UPDATED: Bulk resume analysis endpoint
+// UPDATED: Bulk resume analysis endpoint with segregated columns
 app.post('/bulk-match', upload.fields([
   { name: 'resumes_zip', maxCount: 1 },
   { name: 'job_description', maxCount: 1 }
@@ -273,7 +334,14 @@ app.post('/bulk-match', upload.fields([
     for (let i = 0; i < files.length; i++) {
       const filePath = files[i];
       const filename = path.relative(tempDir, filePath);
-      let row = { filename, score: '', verdict: '', analysis: '', error: '' };
+      let row = { 
+        filename, 
+        score: '', 
+        verdict: '', 
+        keyStrengths: '', 
+        missingSkills: '', 
+        error: '' 
+      };
       
       console.log(`Processing file ${i + 1}/${files.length}: ${filename}`);
       
@@ -289,11 +357,13 @@ app.post('/bulk-match', upload.fields([
         try {
           const geminiAnalysis = await analyzeResumeWithGemini(resumeText, jobDescText);
           const matchScore = extractMatchScore(geminiAnalysis);
-          const cleanAnalysis = geminiAnalysis.replace(/<<MATCH_SCORE:\d{1,3}>>/, '').trim();
+          const parsedAnalysis = parseGeminiAnalysis(geminiAnalysis);
           const verdict = matchScore > 75 ? 'Shortlist' : 'Reject';
+          
           row.score = matchScore;
           row.verdict = verdict;
-          row.analysis = cleanAnalysis;
+          row.keyStrengths = parsedAnalysis.keyStrengths;
+          row.missingSkills = parsedAnalysis.missingSkills;
         } catch (err) {
           row.error = 'Gemini LLM error: ' + err.message;
         }
@@ -303,16 +373,33 @@ app.post('/bulk-match', upload.fields([
       results.push(row);
     }
 
+    // UPDATED: Create Excel with segregated columns
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Bulk Analysis');
     worksheet.columns = [
       { header: 'Resume Filename', key: 'filename', width: 30 },
       { header: 'Match Score', key: 'score', width: 12 },
       { header: 'Verdict', key: 'verdict', width: 12 },
-      { header: 'Analysis', key: 'analysis', width: 80 },
+      { header: 'Key Strengths', key: 'keyStrengths', width: 50 },
+      { header: 'Missing Skills', key: 'missingSkills', width: 50 },
       { header: 'Error', key: 'error', width: 30 }
     ];
-    results.forEach(r => worksheet.addRow(r));
+    
+    // Add rows and format cells for better readability
+    results.forEach(r => {
+      const row = worksheet.addRow(r);
+      
+      // Set text wrapping for analysis columns
+      row.getCell('keyStrengths').alignment = { wrapText: true, vertical: 'top' };
+      row.getCell('missingSkills').alignment = { wrapText: true, vertical: 'top' };
+    });
+    
+    // Set row height for better visibility of wrapped text
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber > 1) { // Skip header row
+        row.height = 100; // Adjust height as needed
+      }
+    });
 
     const reportFilename = `bulk_report_${Date.now()}.xlsx`;
     const reportPath = path.join(__dirname, 'uploads', reportFilename);
@@ -332,18 +419,32 @@ app.post('/bulk-match', upload.fields([
     });
     if (recentBulkAnalyses.length > 10) recentBulkAnalyses.pop();
 
-    // ✅ Save recent bulk analyses to file
+    // ✅ Save recent bulk analyses to file (ensure directory exists)
     const recentsFilePath = path.join(__dirname, 'data', 'bulk_recent_results.json');
-    if (!fs.existsSync(path.dirname(recentsFilePath))) {
-    fs.mkdirSync(path.dirname(recentsFilePath), { recursive: true });
+    const dataDir = path.dirname(recentsFilePath);
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
     }
-    fs.writeFileSync(recentsFilePath, JSON.stringify(recentBulkAnalyses, null, 2));
-    // ✅ Send final response
-    res.json({
-      results,
-      reportUrl: `/download-bulk-report/${reportFilename}`
-    });
+    try {
+      fs.writeFileSync(recentsFilePath, JSON.stringify(recentBulkAnalyses, null, 2));
+      console.log('Recent bulk analyses saved successfully');
+    } catch (error) {
+      console.error('Error saving recent bulk analyses:', error);
+    }
+    
+    // ✅ Save per-resume results to file for future detailed view
+    const resultDataPath = path.join(__dirname, 'data', 'bulk_analysis_results');
+    if (!fs.existsSync(resultDataPath)) {
+    fs.mkdirSync(resultDataPath, { recursive: true });
+    }
+    const jsonReportName = reportFilename.replace('.xlsx', '.json');
+    fs.writeFileSync(path.join(resultDataPath, jsonReportName), JSON.stringify(results, null, 2));
 
+// ✅ Send final response
+  res.json({
+    results,
+    reportUrl: `/download-bulk-report/${reportFilename}`
+  });
   } catch (error) {
     console.error('Bulk analysis error:', error);
     res.status(500).json({ error: 'Server error: ' + error.message });
@@ -362,17 +463,27 @@ app.get('/download-bulk-report/:filename', (req, res) => {
   res.download(filePath, filename); // <-- No deletion anymore
 });
 
-
 // Endpoint to fetch recent bulk analyses
 app.get("/bulk-recents", (req, res) => {
-  const recentsFile = path.join(__dirname, "data", "bulk_recent_results.json");
-  if (!fs.existsSync(recentsFile)) return res.json([]);
+  // Always return the in-memory data which is loaded from file on startup
+  res.json(recentBulkAnalyses);
+});
+
+// Endpoint to fetch detailed JSON results for a bulk report
+app.get('/bulk-details/:reportName', (req, res) => {
+  const reportName = req.params.reportName;
+  const reportFilePath = path.join(__dirname, 'data', 'bulk_analysis_results', `${reportName}.json`);
+
+  if (!fs.existsSync(reportFilePath)) {
+    return res.status(404).json({ error: 'Detailed report not found' });
+  }
+
   try {
-    const data = fs.readFileSync(recentsFile, "utf-8");
+    const data = fs.readFileSync(reportFilePath, 'utf-8');
     res.json(JSON.parse(data));
-  } catch (error) {
-    console.error("Error reading recents:", error);
-    res.status(500).json({ error: "Failed to read recent bulk analyses." });
+  } catch (err) {
+    console.error("Failed to read detailed report:", err);
+    res.status(500).json({ error: 'Failed to load report data.' });
   }
 });
 
@@ -422,6 +533,5 @@ async function extractTextFromFile(filePath, originalName = '') {
     throw new Error(`Failed to extract text from file: ${error.message}`);
   }
 }
-
 
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
