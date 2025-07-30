@@ -7,7 +7,7 @@
 ## Features
 
 -  Upload resumes (individually or in bulk)
--  Upload Job Descriptions (JD)
+-  Upload Job Descriptions (PDF or as text)
 -  Automatic resume-to-JD matching
 -  AI-generated analysis using Gemini (LLM)
 -  Scores & verdicts (e.g., Strong Match, Weak Match)
@@ -21,7 +21,7 @@
 
 | Layer         | Technology                         |
 |---------------|-------------------------------------|
-| **Frontend**  | React.js, Tailwind CSS              |
+| **Frontend**  | Vite+React.js, CSS                       |
 | **Backend**   | Node.js (Express), Gemini AI (LLM)  |
 | **File Parsing** | `pdf-parse`, `docx`, `mammoth`   |
 | **Excel Reporting** | `exceljs`                    |
@@ -30,7 +30,7 @@
 
 ---
 
-## 🧩 System Architecture
+## System Architecture
 
 [User Uploads Files] → [Frontend UI (React)]
 
@@ -65,12 +65,11 @@
    - Verdict (e.g., Strong/Moderate/Weak Match)
    - Key Strengths
    - Missing Skills
-   - Recommendations for improvement
 4. **Output Formatting**: Results are added to Excel with all the metadata.
 
 ---
 
-## 📦 Setup Instructions
+## Setup Instructions
 
 ### 1. Clone the Repository
 
